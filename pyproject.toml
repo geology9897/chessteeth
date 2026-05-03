@@ -1,0 +1,21 @@
+[project]
+name = "chessteeth"
+version = "0.1.0"
+description = "A kid-friendly chess game where pieces show their teeth when capturing"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "pillow>=12.2.0",
+    "pygame>=2.6.1",
+    "python-chess>=1.999",
+]
+
+[project.scripts]
+chessteeth = "game.main:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["game"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
