@@ -5,12 +5,15 @@ import threading
 import chess
 import chess.engine
 
-# (num, label, skill_level 0-20, think_time seconds)
+# (num, label, uci_options, limit_kwargs)
+# Skill Level 0 = maximum blunder rate; depth cap forces very shallow search.
+# UCI_LimitStrength bottoms out at ~1350 ELO (still hard), so we use depth
+# limits instead for Easy/Medium to get a more gradual beginner curve.
 DIFFICULTIES = [
-    (1, "Easy",   0,  0.10),
-    (2, "Medium", 5,  0.50),
-    (3, "Hard",  12,  1.20),
-    (4, "Expert",20,  3.00),
+    (1, "Easy",   {"Skill Level": 0},  {"depth": 1,  "time": 0.05}),
+    (2, "Medium", {"Skill Level": 5},  {"depth": 4,  "time": 0.3}),
+    (3, "Hard",   {"Skill Level": 14}, {"time": 0.8}),
+    (4, "Expert", {"Skill Level": 20}, {"time": 3.0}),
 ]
 
 
@@ -39,8 +42,9 @@ class BotEngine:
             return False
         try:
             self._engine = chess.engine.SimpleEngine.popen_uci(path)
-            _, _, skill, _ = DIFFICULTIES[self.difficulty - 1]
-            self._engine.configure({"Skill Level": skill})
+            _, _, opts, _ = DIFFICULTIES[self.difficulty - 1]
+            if opts:
+                self._engine.configure(opts)
             return True
         except Exception:
             return False
@@ -49,12 +53,12 @@ class BotEngine:
         if self._thread and self._thread.is_alive():
             return
         board_copy = board.copy()
-        _, _, _, think = DIFFICULTIES[self.difficulty - 1]
+        _, _, _, limit_kwargs = DIFFICULTIES[self.difficulty - 1]
 
         def _run():
             try:
                 assert self._engine is not None
-                result = self._engine.play(board_copy, chess.engine.Limit(time=think))
+                result = self._engine.play(board_copy, chess.engine.Limit(**limit_kwargs))
                 with self._lock:
                     self._pending = result.move
             except Exception:

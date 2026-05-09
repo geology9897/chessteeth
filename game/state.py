@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from typing import Optional
 
 
-CHOMP_DURATION = 38
+CHOMP_DURATION = 55
 ANIM_DURATION  = 12   # frames at 60 fps ≈ 200 ms
 
 
@@ -21,6 +21,11 @@ class GameState:
     anim_from_sq: Optional[chess.Square] = None
     anim_to_sq: Optional[chess.Square] = None
     anim_timer: int = 0
+    # metrics
+    white_captures: list[chess.Piece] = field(default_factory=list)
+    black_captures: list[chess.Piece] = field(default_factory=list)
+    white_checks: int = 0
+    black_checks: int = 0
 
     def select(self, square: chess.Square) -> bool:
         piece = self.board.piece_at(square)
@@ -52,12 +57,36 @@ class GameState:
             return False
         moving_piece = self.board.piece_at(move.from_square)
         is_capture   = self.board.is_capture(move)
+
+        # Record captured piece before the board state changes
+        captured = None
+        if is_capture:
+            if self.board.is_en_passant(move):
+                ep_sq = chess.square(chess.square_file(move.to_square),
+                                     chess.square_rank(move.from_square))
+                captured = self.board.piece_at(ep_sq)
+            else:
+                captured = self.board.piece_at(move.to_square)
+
         self.board.push(move)
         self.selected = None
         self.legal_targets = []
+
         if is_capture:
             self.chomping_square = move.to_square
             self.chomp_timer = CHOMP_DURATION
+            if captured and moving_piece:
+                if moving_piece.color == chess.WHITE:
+                    self.white_captures.append(captured)
+                else:
+                    self.black_captures.append(captured)
+
+        if self.board.is_check():
+            if self.board.turn == chess.BLACK:
+                self.white_checks += 1
+            else:
+                self.black_checks += 1
+
         if moving_piece:
             self.anim_piece   = moving_piece
             self.anim_from_sq = move.from_square

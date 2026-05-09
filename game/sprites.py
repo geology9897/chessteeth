@@ -1,10 +1,10 @@
 """
-Pixel-art chess piece sprites at 32×32.
+Pixel-art chess piece sprites drawn in 32×32 logical space, stored as 128×128 PNGs.
 
 Normal state: proper chess piece silhouettes, no face.
 Chomp state:  same silhouette but with a gaping toothed mouth (the "chessteeth" moment).
 
-PNGs are written to chessteeth/assets/ on first run.
+PNGs are written to game/assets/ on first run (filename includes canvas size).
 Edit them in any image editor — the game loads from disk.
 """
 from __future__ import annotations
@@ -13,8 +13,9 @@ import chess
 import pygame
 from PIL import Image, ImageDraw
 
-_SZ      = 32
-_DISPLAY = 80
+_SCALE   = 2          # internal drawing space is 32×32; multiply all coords by this
+_SZ      = 32 * _SCALE  # = 64 — canvas for PIL drawing
+_DISPLAY = 80         # PNG stored at this size; disk PNGs are already 80×80
 _ASSETS  = os.path.join(os.path.dirname(__file__), "assets")
 _cache: dict[str, pygame.Surface] = {}
 
@@ -30,19 +31,26 @@ def _dk(rgb, n=40):     return tuple(max(0,   v-n) for v in rgb) + (255,)
 def _lk(rgb, n=40):     return tuple(min(255, v+n) for v in rgb) + (255,)
 
 
-# ── drawing primitives (32×32 space) ─────────────────────────────────────────
+# ── drawing primitives (32×32 logical space — all coords scaled by _SCALE) ───
 
 def _r(d, x, y, w, h, col):
-    if w>0 and h>0: d.rectangle([(x,y),(x+w-1,y+h-1)], fill=col)
+    s = _SCALE
+    if w > 0 and h > 0:
+        d.rectangle([(x*s, y*s), (x*s + w*s - 1, y*s + h*s - 1)], fill=col)
 
 def _e(d, x0, y0, x1, y1, fill, outline=None):
-    d.ellipse([(x0,y0),(x1,y1)], fill=fill, outline=outline)
+    s = _SCALE
+    d.ellipse([(x0*s, y0*s), (x1*s, y1*s)], fill=fill, outline=outline)
 
 def _p(d, x, y, col):
-    if 0<=x<_SZ and 0<=y<_SZ: d.point((x,y), fill=col)
+    s = _SCALE
+    base = _SZ // s
+    if 0 <= x < base and 0 <= y < base:
+        d.rectangle([(x*s, y*s), (x*s+s-1, y*s+s-1)], fill=col)
 
 def _tri(d, pts, fill, outline=None):
-    d.polygon(pts, fill=fill, outline=outline)
+    s = _SCALE
+    d.polygon([(px*s, py*s) for px, py in pts], fill=fill, outline=outline)
 
 def _hline(d, x, y, w, col):
     _r(d, x, y, w, 1, col)

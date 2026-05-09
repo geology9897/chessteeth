@@ -1,6 +1,6 @@
 # ChessTeeth
 
-A desktop chess game built for a 9-year-old who just got into chess and had one specific request: the pieces should **bare their teeth** when they capture.
+A desktop chess game I made for my 9-year-old daughter who just got into chess and had one specific request: the pieces should **bare their teeth** when they capture.
 
 Two goals, one project — she gets a game made just for her, and a codebase to start learning Python with.
 
@@ -63,7 +63,7 @@ chessteeth/
 │   ├── sprites.py   # sprite loading and caching
 │   ├── themes.py    # color theme
 │   ├── bot.py       # Stockfish wrapper (background thread)
-│   └── assets/      # generated 80×80 PNGs (auto-created)
+│   └── assets/      # generated 128×128 PNGs (auto-created)
 ├── pyproject.toml
 └── uv.lock
 ```

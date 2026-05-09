@@ -31,10 +31,12 @@ def _make_fonts(sq):
     }
 
 
-def _sq_from_mouse(mx, my, bx, by, sq):
+def _sq_from_mouse(mx, my, bx, by, sq, flip=False):
     rx, ry = mx - bx, my - by
     if not (0 <= rx < sq * 8 and 0 <= ry < sq * 8):
         return None
+    if flip:
+        return chess.square(7 - (rx // sq), ry // sq)
     return chess.square(rx // sq, 7 - (ry // sq))
 
 
@@ -210,6 +212,10 @@ def main():
         # ── game ──────────────────────────────────────────────────────────────
         assert state is not None
 
+        # flip=True when the player chose Black (bot plays White, so player's
+        # pieces are on ranks 7-8 — display those at the bottom)
+        flip = bot is not None and bot_color == chess.WHITE
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 if bot: bot.close()
@@ -222,7 +228,7 @@ def main():
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 if state.game_over or state.animating(): continue
                 if bot and state.board.turn == bot_color: continue
-                clicked = _sq_from_mouse(*event.pos, bx, by, sq)
+                clicked = _sq_from_mouse(*event.pos, bx, by, sq, flip)
                 if clicked is None: continue
                 if state.selected is not None:
                     if state.try_move(clicked):
@@ -252,7 +258,7 @@ def main():
             th = fonts["sm"].render("Bot is thinking…", True, theme.check_sq)
             screen.blit(th, (bx, by - th.get_height() - 6))
 
-        board_mod.draw(screen, state, theme, bx, by, fonts, sq)
+        board_mod.draw(screen, state, theme, bx, by, fonts, sq, flip)
 
         pygame.display.flip()
         clock.tick(FPS)
