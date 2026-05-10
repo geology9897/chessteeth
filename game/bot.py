@@ -11,8 +11,7 @@ import chess.engine
 # UCI_LimitStrength bottoms out at ~1350 ELO (still hard), so we use depth
 # limits instead for Easy/Medium to get a more gradual beginner curve.
 DIFFICULTIES = [
-    (1, "Easy",   {"Skill Level": 0, "UCI_LimitStrength": True, "UCI_Elo": 1320},
-                  {"depth": 3, "time": 0.1}),
+    (1, "Easy",   {"Skill Level": 0},  {"depth": 1, "time": 0.05}),
     (2, "Medium", {"Skill Level": 5},  {"depth": 4,  "time": 0.3}),
     (3, "Hard",   {"Skill Level": 14}, {"time": 0.8}),
     (4, "Expert", {"Skill Level": 20}, {"time": 3.0}),
