@@ -9,8 +9,12 @@ Two goals, one project — she gets a game made just for her, and a codebase to 
 ## What it does
 
 - Full two-player chess with legal-move highlighting, check detection, and all draw conditions
-- **CHOMP!** — capturing pieces flash a toothed mouth, scale up, and the board shouts CHOMP!
-- Play against a Stockfish bot at four difficulty levels (Easy → Expert)
+- **CHOMP!** — capturing pieces flash a toothed mouth and the board shouts CHOMP!
+- Play against a bot at four difficulty levels — Easy is a pure random mover, actually beatable
+- Board flips automatically when you play as Black so your pieces are always at the bottom
+- Pawn promotion lets you pick the piece you want (Queen / Rook / Bishop / Knight)
+- Capture rings highlight enemy pieces you can take so you never miss a free piece
+- Live stats panel shows pieces remaining, material captured, and checks given per side
 - Pixel-art humanized chess pieces — queen, king, bishop, knight, rook, pawn as characters
 - Resizable window — drag it as big as you like, the board scales with it
 - Parchment color theme
@@ -44,7 +48,9 @@ uv run chessteeth
 | Action | Effect |
 |--------|--------|
 | Click a piece | Select (legal moves shown as dots) |
-| Click a dot | Move there |
+| Click a dot or ring | Move there (ring = capturable enemy) |
+| Click a promotion tile | Choose promoted piece after pawn reaches last rank |
+| `Q` / `R` / `B` / `N` | Keyboard shortcut for promotion choice |
 | `R` | Back to menu |
 | `ESC` | Back to menu |
 

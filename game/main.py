@@ -92,8 +92,8 @@ def _draw_menu(screen, theme, fonts, step, cursor, diff, sf_ok):
         screen.blit(lbl_s, (W // 2 - box_w // 2 + 16 + key_s.get_width() + 12,
                             y + (row_h - 8 - lbl_s.get_height()) // 2))
 
-    if not sf_ok and step == "mode":
-        warn = fonts["sm"].render("Stockfish not found — bot unavailable", True, theme.check_sq)
+    if not sf_ok and step == "difficulty":
+        warn = fonts["sm"].render("Stockfish not found — Easy only (random mover)", True, theme.check_sq)
         screen.blit(warn, (W // 2 - warn.get_width() // 2,
                            opt_y + len(opts) * row_h + 8))
 
@@ -136,8 +136,8 @@ def main():
     in_game = False
 
     def _opts():
-        if step == "mode":   return _MODE_OPTS if sf_ok else _MODE_OPTS[:1]
-        if step == "difficulty": return _DIFF_OPTS
+        if step == "mode": return _MODE_OPTS
+        if step == "difficulty": return _DIFF_OPTS if sf_ok else _DIFF_OPTS[:1]
         return _COLOR_OPTS
 
     def start_game(b, bc):
@@ -157,7 +157,7 @@ def main():
         nonlocal step, cursor, sel_diff, sf_ok
         if step == "mode":
             if idx == 0: start_game(None, None)
-            elif idx == 1 and sf_ok: step = "difficulty"; cursor = sel_diff - 1
+            elif idx == 1: step = "difficulty"; cursor = sel_diff - 1
         elif step == "difficulty":
             sel_diff = idx + 1; step = "color"; cursor = 0
         elif step == "color":
@@ -222,10 +222,25 @@ def main():
                 pygame.quit(); sys.exit()
 
             elif event.type == pygame.KEYDOWN:
-                if event.key in (pygame.K_ESCAPE, pygame.K_q, pygame.K_r):
+                if state.promotion_pending is not None:
+                    _PROMO_KEYS = {pygame.K_q: chess.QUEEN, pygame.K_r: chess.ROOK,
+                                   pygame.K_b: chess.BISHOP, pygame.K_n: chess.KNIGHT}
+                    if event.key in _PROMO_KEYS:
+                        state.complete_promotion(_PROMO_KEYS[event.key])
+                        if bot and not state.game_over and state.board.turn == bot_color:
+                            bot.request_move(state.board)
+                elif event.key in (pygame.K_ESCAPE, pygame.K_q, pygame.K_r):
                     back_to_menu(); break
 
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                if state.promotion_pending is not None:
+                    for pt, rect in board_mod.promo_rects(bx, by, sq):
+                        if rect.collidepoint(event.pos):
+                            state.complete_promotion(pt)
+                            if bot and not state.game_over and state.board.turn == bot_color:
+                                bot.request_move(state.board)
+                            break
+                    continue
                 if state.game_over or state.animating(): continue
                 if bot and state.board.turn == bot_color: continue
                 clicked = _sq_from_mouse(*event.pos, bx, by, sq, flip)

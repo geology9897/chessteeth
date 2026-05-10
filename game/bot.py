@@ -1,5 +1,6 @@
 """Stockfish wrapper with background-thread move generation."""
 import os
+import random
 import shutil
 import threading
 import chess
@@ -37,6 +38,8 @@ class BotEngine:
         self._lock = threading.Lock()
 
     def start(self) -> bool:
+        if self.difficulty == 1:
+            return True  # Easy uses random moves — no engine needed
         path = find_stockfish()
         if not path:
             return False
@@ -53,6 +56,17 @@ class BotEngine:
         if self._thread and self._thread.is_alive():
             return
         board_copy = board.copy()
+
+        if self.difficulty == 1:
+            def _run():
+                moves = list(board_copy.legal_moves)
+                if moves:
+                    with self._lock:
+                        self._pending = random.choice(moves)
+            self._thread = threading.Thread(target=_run, daemon=True)
+            self._thread.start()
+            return
+
         _, _, _, limit_kwargs = DIFFICULTIES[self.difficulty - 1]
 
         def _run():

@@ -5,6 +5,16 @@ from .state import GameState, ANIM_DURATION
 from . import pieces as p
 
 FILES = "abcdefgh"
+PROMO_PIECES = [chess.QUEEN, chess.ROOK, chess.BISHOP, chess.KNIGHT]
+PROMO_LABELS  = {chess.QUEEN: "Q", chess.ROOK: "R", chess.BISHOP: "B", chess.KNIGHT: "N"}
+
+
+def promo_rects(ox: int, oy: int, sq: int) -> list[tuple[int, pygame.Rect]]:
+    """Pixel rects for the 4 promotion choices — shared by draw and click detection."""
+    start_x = ox + sq * 2
+    center_y = oy + sq * 3
+    return [(pt, pygame.Rect(start_x + i * sq, center_y, sq, sq))
+            for i, pt in enumerate(PROMO_PIECES)]
 
 
 def draw(surface: pygame.Surface, state: GameState, theme: Theme,
@@ -19,6 +29,8 @@ def draw(surface: pygame.Surface, state: GameState, theme: Theme,
     _stats_bar(surface, state, theme, fonts)
     if state.game_over:
         _game_over_banner(surface, state, theme, ox, oy, fonts, sq)
+    if state.promotion_pending:
+        _promotion_overlay(surface, state, theme, ox, oy, fonts, sq)
 
 
 def _sq_topleft(file, rank, ox, oy, sq, flip):
@@ -130,7 +142,8 @@ def _status_bar(surface, state, theme, ox, oy, fonts, sq):
 
 def _controls_bar(surface, state, theme, ox, oy, font, sq):
     txt = font.render("R — restart    ESC — menu", True, theme.label_color)
-    surface.blit(txt, (ox, oy + sq * 8 + font.get_height() + 8))
+    _, H = surface.get_size()
+    surface.blit(txt, (ox, H - txt.get_height() - 6))
 
 
 def _stats_bar(surface, state, theme, fonts):
@@ -172,6 +185,35 @@ def _stats_bar(surface, state, theme, fonts):
             surface.blit(txt, (W - txt.get_width() - 10, y))
             y += H + 2
         y += 3
+
+
+def _promotion_overlay(surface, state, theme, ox, oy, fonts, sq):
+    overlay = pygame.Surface((sq * 8, sq * 8), pygame.SRCALPHA)
+    r, g, b = theme.banner_bg
+    overlay.fill((r, g, b, 200))
+    surface.blit(overlay, (ox, oy))
+
+    heading = fonts["lg"].render("Promote pawn — choose piece:", True, theme.banner_text)
+    rects = promo_rects(ox, oy, sq)
+    _, first_rect = rects[0]
+    surface.blit(heading, (ox + sq * 4 - heading.get_width() // 2,
+                           first_rect.top - heading.get_height() - 10))
+
+    color = state.board.turn
+    fill    = theme.white_piece   if color == chess.WHITE else theme.black_piece
+    outline = theme.white_outline if color == chess.WHITE else theme.black_outline
+    hint = fonts["sm"].render("or press  Q / R / B / N", True, theme.banner_text)
+    _, last_rect = rects[-1]
+    surface.blit(hint, (ox + sq * 4 - hint.get_width() // 2,
+                        last_rect.bottom + 8))
+
+    for pt, rect in rects:
+        pygame.draw.rect(surface, theme.dark_sq, rect, border_radius=6)
+        pygame.draw.rect(surface, theme.label_color, rect, 2, border_radius=6)
+        piece = chess.Piece(pt, color)
+        p.draw_piece(surface, piece, rect.centerx, rect.centery, sq, fill, outline)
+        lbl = fonts["sm"].render(PROMO_LABELS[pt], True, theme.banner_text)
+        surface.blit(lbl, (rect.right - lbl.get_width() - 4, rect.top + 2))
 
 
 def _game_over_banner(surface, state, theme, ox, oy, fonts, sq):

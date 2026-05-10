@@ -21,6 +21,8 @@ class GameState:
     anim_from_sq: Optional[chess.Square] = None
     anim_to_sq: Optional[chess.Square] = None
     anim_timer: int = 0
+    # pawn promotion awaiting piece choice
+    promotion_pending: Optional[tuple] = None   # (from_sq, to_sq) or None
     # metrics
     white_captures: list[chess.Piece] = field(default_factory=list)
     black_captures: list[chess.Piece] = field(default_factory=list)
@@ -45,12 +47,24 @@ class GameState:
         move = None
         for m in self.board.legal_moves:
             if m.from_square == self.selected and m.to_square == to_sq:
-                move = chess.Move(m.from_square, m.to_square,
-                                  promotion=chess.QUEEN if m.promotion else None)
+                if m.promotion:
+                    # pause and ask the player which piece they want
+                    self.promotion_pending = (m.from_square, m.to_square)
+                    self.selected = None
+                    self.legal_targets = []
+                    return True
+                move = m
                 break
         if move is None:
             return False
         return self.apply_move(move)
+
+    def complete_promotion(self, piece_type: int) -> bool:
+        if self.promotion_pending is None:
+            return False
+        from_sq, to_sq = self.promotion_pending
+        self.promotion_pending = None
+        return self.apply_move(chess.Move(from_sq, to_sq, promotion=piece_type))
 
     def apply_move(self, move: chess.Move) -> bool:
         if move not in self.board.legal_moves:
