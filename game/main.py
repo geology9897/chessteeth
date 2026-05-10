@@ -12,7 +12,7 @@ FPS = 60
 
 def _layout(w, h):
     """Return (sq, board_x, board_y) for the given window size."""
-    sq = max(40, min((w - 60) // 8, (h - 130) // 8))
+    sq = max(40, min((w - 60) // 8, (h - 160) // 8))
     board_px = sq * 8
     bx = (w - board_px) // 2
     by = (h - board_px) // 2 + 10
@@ -93,7 +93,7 @@ def _draw_menu(screen, theme, fonts, step, cursor, diff, sf_ok):
                             y + (row_h - 8 - lbl_s.get_height()) // 2))
 
     if not sf_ok and step == "difficulty":
-        warn = fonts["sm"].render("Stockfish not found — Easy only (random mover)", True, theme.check_sq)
+        warn = fonts["sm"].render("Stockfish not found — Easy only (plays randomly)", True, theme.check_sq)
         screen.blit(warn, (W // 2 - warn.get_width() // 2,
                            opt_y + len(opts) * row_h + 8))
 

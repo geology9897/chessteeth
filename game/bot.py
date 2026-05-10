@@ -11,7 +11,8 @@ import chess.engine
 # UCI_LimitStrength bottoms out at ~1350 ELO (still hard), so we use depth
 # limits instead for Easy/Medium to get a more gradual beginner curve.
 DIFFICULTIES = [
-    (1, "Easy",   {"Skill Level": 0},  {"depth": 1,  "time": 0.05}),
+    (1, "Easy",   {"Skill Level": 0, "UCI_LimitStrength": True, "UCI_Elo": 1320},
+                  {"depth": 3, "time": 0.1}),
     (2, "Medium", {"Skill Level": 5},  {"depth": 4,  "time": 0.3}),
     (3, "Hard",   {"Skill Level": 14}, {"time": 0.8}),
     (4, "Expert", {"Skill Level": 20}, {"time": 3.0}),
@@ -38,26 +39,27 @@ class BotEngine:
         self._lock = threading.Lock()
 
     def start(self) -> bool:
-        if self.difficulty == 1:
-            return True  # Easy uses random moves — no engine needed
         path = find_stockfish()
-        if not path:
+        if path:
+            try:
+                self._engine = chess.engine.SimpleEngine.popen_uci(path)
+                _, _, opts, _ = DIFFICULTIES[self.difficulty - 1]
+                if opts:
+                    self._engine.configure(opts)
+            except Exception:
+                self._engine = None
+        # Easy can run without Stockfish via random-move fallback
+        if self._engine is None and self.difficulty != 1:
             return False
-        try:
-            self._engine = chess.engine.SimpleEngine.popen_uci(path)
-            _, _, opts, _ = DIFFICULTIES[self.difficulty - 1]
-            if opts:
-                self._engine.configure(opts)
-            return True
-        except Exception:
-            return False
+        return True
 
     def request_move(self, board: chess.Board) -> None:
         if self._thread and self._thread.is_alive():
             return
         board_copy = board.copy()
 
-        if self.difficulty == 1:
+        if self._engine is None:
+            # Stockfish unavailable — random fallback (Easy only reaches here)
             def _run():
                 moves = list(board_copy.legal_moves)
                 if moves:
@@ -71,7 +73,6 @@ class BotEngine:
 
         def _run():
             try:
-                assert self._engine is not None
                 result = self._engine.play(board_copy, chess.engine.Limit(**limit_kwargs))
                 with self._lock:
                     self._pending = result.move

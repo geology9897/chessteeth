@@ -25,7 +25,7 @@ def draw(surface: pygame.Surface, state: GameState, theme: Theme,
     _anim_piece(surface, state, theme, ox, oy, sq, flip)
     _chomp_text(surface, state, theme, ox, oy, fonts["chomp"], sq)
     _status_bar(surface, state, theme, ox, oy, fonts, sq)
-    _controls_bar(surface, state, theme, ox, oy, fonts["sm"], sq)
+    _controls_bar(surface, state, theme, ox, oy, fonts, sq)
     _stats_bar(surface, state, theme, fonts)
     if state.game_over:
         _game_over_banner(surface, state, theme, ox, oy, fonts, sq)
@@ -140,10 +140,13 @@ def _status_bar(surface, state, theme, ox, oy, fonts, sq):
     surface.blit(txt, (ox, oy - fonts["lg"].get_height() - 6))
 
 
-def _controls_bar(surface, state, theme, ox, oy, font, sq):
+def _controls_bar(surface, state, theme, ox, oy, fonts, sq):
+    font = fonts["sm"]
     txt = font.render("R — restart    ESC — menu", True, theme.label_color)
+    # sit below the file labels (which use fonts["md"])
+    y = oy + sq * 8 + fonts["md"].get_height() + 8
     _, H = surface.get_size()
-    surface.blit(txt, (ox, H - txt.get_height() - 6))
+    surface.blit(txt, (ox, min(y, H - txt.get_height() - 4)))
 
 
 def _stats_bar(surface, state, theme, fonts):
