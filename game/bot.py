@@ -7,14 +7,17 @@ import chess
 import chess.engine
 
 # (num, label, uci_options, limit_kwargs)
-# Skill Level 0 = maximum blunder rate; depth cap forces very shallow search.
-# UCI_LimitStrength bottoms out at ~1350 ELO (still hard), so we use depth
-# limits instead for Easy/Medium to get a more gradual beginner curve.
+# Beginner plays randomly (no engine). Easy uses depth-capped Stockfish with
+# maximum error injection. Medium–Expert use UCI_LimitStrength + ELO so the
+# mistakes Stockfish makes match those of a human at that rating — a smooth
+# ramp rather than a sudden spike. Stockfish clamps UCI_Elo at ~1320 minimum,
+# so the two weakest levels rely on depth limits instead.
 DIFFICULTIES = [
-    (1, "Easy",   {"Skill Level": 0},  {"depth": 1, "time": 0.05}),
-    (2, "Medium", {"Skill Level": 5},  {"depth": 4,  "time": 0.3}),
-    (3, "Hard",   {"Skill Level": 14}, {"time": 0.8}),
-    (4, "Expert", {"Skill Level": 20}, {"time": 3.0}),
+    (1, "Beginner", {},                                            {}),
+    (2, "Easy",     {"Skill Level": 0},                            {"depth": 1}),
+    (3, "Medium",   {"UCI_LimitStrength": True, "UCI_Elo": 1350},  {"time": 0.5}),
+    (4, "Hard",     {"UCI_LimitStrength": True, "UCI_Elo": 1800},  {"time": 1.0}),
+    (5, "Expert",   {"UCI_LimitStrength": True, "UCI_Elo": 2400},  {"time": 3.0}),
 ]
 
 
@@ -38,6 +41,8 @@ class BotEngine:
         self._lock = threading.Lock()
 
     def start(self) -> bool:
+        if self.difficulty == 1:
+            return True  # Beginner always plays randomly, no engine needed
         path = find_stockfish()
         if path:
             try:
@@ -47,8 +52,7 @@ class BotEngine:
                     self._engine.configure(opts)
             except Exception:
                 self._engine = None
-        # Easy can run without Stockfish via random-move fallback
-        if self._engine is None and self.difficulty != 1:
+        if self._engine is None:
             return False
         return True
 
@@ -58,7 +62,7 @@ class BotEngine:
         board_copy = board.copy()
 
         if self._engine is None:
-            # Stockfish unavailable — random fallback (Easy only reaches here)
+            # Beginner difficulty always reaches here — no engine was started
             def _run():
                 moves = list(board_copy.legal_moves)
                 if moves:

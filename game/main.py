@@ -10,11 +10,13 @@ from .bot import BotEngine, DIFFICULTIES, find_stockfish
 FPS = 60
 
 
+_PANEL_W = 200  # pixels reserved on the right for the stats panel
+
 def _layout(w, h):
     """Return (sq, board_x, board_y) for the given window size."""
-    sq = max(40, min((w - 60) // 8, (h - 160) // 8))
+    sq = max(40, min((w - _PANEL_W - 60) // 8, (h - 160) // 8))
     board_px = sq * 8
-    bx = (w - board_px) // 2
+    bx = max(10, (w - _PANEL_W - board_px) // 2)
     by = (h - board_px) // 2 + 10
     return sq, bx, by
 
@@ -59,7 +61,7 @@ def _draw_menu(screen, theme, fonts, step, cursor, diff, sf_ok):
                      (W - 40, H // 8 + title.get_height() + 8), 2)
 
     if step == "mode":
-        opts = _MODE_OPTS if sf_ok else _MODE_OPTS[:1]
+        opts = _MODE_OPTS
         heading = "Choose Mode"
     elif step == "difficulty":
         opts = _DIFF_OPTS
@@ -93,7 +95,7 @@ def _draw_menu(screen, theme, fonts, step, cursor, diff, sf_ok):
                             y + (row_h - 8 - lbl_s.get_height()) // 2))
 
     if not sf_ok and step == "difficulty":
-        warn = fonts["sm"].render("Stockfish not found — Easy only (plays randomly)", True, theme.check_sq)
+        warn = fonts["sm"].render("Stockfish not found — Beginner only (plays randomly)", True, theme.check_sq)
         screen.blit(warn, (W // 2 - warn.get_width() // 2,
                            opt_y + len(opts) * row_h + 8))
 
@@ -116,7 +118,7 @@ def _mode_label(bot, bot_color):
 
 def main():
     pygame.init()
-    screen = pygame.display.set_mode((700, 800), pygame.RESIZABLE)
+    screen = pygame.display.set_mode((900, 800), pygame.RESIZABLE)
     pygame.display.set_caption("ChessTeeth")
     clock = pygame.time.Clock()
 

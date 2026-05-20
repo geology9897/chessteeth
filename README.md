@@ -4,13 +4,15 @@ A desktop chess game I made for my 9-year-old daughter who just got into chess a
 
 Two goals, one project — she gets a game made just for her, and a codebase to start learning Python with.
 
+![ChessTeeth screenshot](source/screenshot.png)
+
 ---
 
 ## What it does
 
 - Full two-player chess with legal-move highlighting, check detection, and all draw conditions
 - **CHOMP!** — capturing pieces flash a toothed mouth and the board shouts CHOMP!
-- Play against a bot at four difficulty levels — Easy is a pure random mover, actually beatable
+- Play against a bot at five difficulty levels — from pure random (Beginner) to ELO-rated opponents up to 2400
 - Board flips automatically when you play as Black so your pieces are always at the bottom
 - Pawn promotion lets you pick the piece you want (Queen / Rook / Bishop / Knight)
 - Capture rings highlight enemy pieces you can take so you never miss a free piece
@@ -73,6 +75,22 @@ chessteeth/
 ├── pyproject.toml
 └── uv.lock
 ```
+
+---
+
+## Bot difficulty
+
+| Level | How it plays |
+|-------|-------------|
+| Beginner | Picks a random legal move — gives away pieces freely, no plan at all |
+| Easy | Stockfish depth 1 + maximum error injection — equivalent to Lichess bot Level 1 |
+| Medium | ELO 1350 — protects pieces, has a rough plan, misses combinations |
+| Hard | ELO 1800 — plays solidly, punishes tactical mistakes |
+| Expert | ELO 2400 — near-master strength |
+
+**Why ELO?** Chess ratings describe consistent playing strength on a single scale. ELO 1350 makes the kind of mistakes a 1350-rated human makes — genuine oversights, not random blunders — producing a smooth ramp rather than sudden difficulty spikes. Stockfish's ELO floor is ~1320, so Beginner and Easy use depth limits instead.
+
+Stockfish is required for Easy and above. Without it, only Beginner (random) is available.
 
 ---
 
