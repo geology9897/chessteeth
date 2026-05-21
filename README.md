@@ -17,7 +17,7 @@ Two goals, one project — she gets a game made just for her, and a codebase to 
 - Pawn promotion lets you pick the piece you want (Queen / Rook / Bishop / Knight)
 - Capture rings highlight enemy pieces you can take so you never miss a free piece
 - Live stats panel shows pieces remaining, material captured, and checks given per side
-- Pixel-art humanized chess pieces — queen, king, bishop, knight, rook, pawn as characters
+- Pixel-art chessmen designed with Google Gemini — each piece is a character with a face, armor, and weapons
 - Resizable window — drag it as big as you like, the board scales with it
 - Parchment color theme
 
@@ -62,7 +62,7 @@ uv run chessteeth
 
 ```
 chessteeth/
-├── source/          # original pixel-art source images
+├── source/          # source screenshots and reference images
 ├── game/            # Python package
 │   ├── main.py      # window, menu, game loop
 │   ├── state.py     # game state (wraps python-chess)
@@ -91,6 +91,12 @@ chessteeth/
 **Why ELO?** Chess ratings describe consistent playing strength on a single scale. ELO 1350 makes the kind of mistakes a 1350-rated human makes — genuine oversights, not random blunders — producing a smooth ramp rather than sudden difficulty spikes. Stockfish's ELO floor is ~1320, so Beginner and Easy use depth limits instead.
 
 Stockfish is required for Easy and above. Without it, only Beginner (random) is available.
+
+---
+
+## Art
+
+The pixel-art chessmen were designed using Google Gemini as a creative tool. All artwork was prompted, refined, and adapted by the author — four prompt iterations to nail consistent weapon hands, color palettes, and the chomp expression. See [source/chessteeth_image_prompt.md](source/chessteeth_image_prompt.md) for the full prompt log.
 
 ---
 

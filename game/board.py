@@ -133,7 +133,7 @@ def _chomp_text(surface, state, theme, ox, oy, font, sq):
 def _status_bar(surface, state, theme, ox, oy, fonts, sq):
     if state.game_over:
         return
-    turn = "White's turn ♙" if state.board.turn == chess.WHITE else "Black's turn ♟"
+    turn = "White's turn" if state.board.turn == chess.WHITE else "Black's turn"
     if state.in_check():
         turn += "  ⚠ CHECK!"
     txt = fonts["lg"].render(turn, True, theme.text_color)
@@ -181,13 +181,13 @@ def _stats_bar(surface, state, theme, fonts):
     ]
     y = base_y
     for side, left, caps, checks in rows:
-        line1 = f"{side}: {left} pcs  checks: {checks}"
-        line2 = f"  took: {fmt_caps(caps)}"
+        line1 = f"{side}: {left} pcs   checks: {checks}"
+        line2 = f"took: {fmt_caps(caps)}"
         for line in (line1, line2):
             txt = font.render(line, True, theme.text_color)
             surface.blit(txt, (W - txt.get_width() - 10, y))
             y += H + 2
-        y += 3
+        y += 6
 
 
 def _promotion_overlay(surface, state, theme, ox, oy, fonts, sq):
