@@ -36,7 +36,7 @@ Two goals, one project — she gets a game made just for her, and a codebase to 
 ## Run
 
 ```bash
-git clone https://github.com/nli276/chessteeth.git
+git clone https://github.com/geology9897/chessteeth.git
 cd chessteeth
 uv run chessteeth
 ```
